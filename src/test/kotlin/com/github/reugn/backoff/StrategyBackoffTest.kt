@@ -16,7 +16,7 @@ class StrategyBackoffTest {
     fun exponentialDefaultStrategy() {
         val backoff = StrategyBackoff<Int>(Duration.ofMillis(100), { i -> i == 1 })
         val t = measureTimeMillis {
-            when (val v = runBlocking { backoff.retry { -> 1 } }) {
+            when (val v = runBlocking { backoff.retry { 1 } }) {
                 is Ok -> {
                     assertEquals(v.value, 1)
                     assertEquals(v.retries, 1)
@@ -31,7 +31,7 @@ class StrategyBackoffTest {
     @Test
     fun constantStrategy() {
         val backoff = StrategyBackoff<Int>(Duration.ofMillis(100), forall, 2, Strategy.constant())
-        val result = runBlocking { backoff.retry { -> 1 } }
+        val result = runBlocking { backoff.retry { 1 } }
         assert(result.isOk())
         assertEquals(result.retries, 1)
     }
@@ -39,7 +39,7 @@ class StrategyBackoffTest {
     @Test
     fun exponentialDefaultStrategyErr() {
         val backoff = StrategyBackoff<Int>(Duration.ofMillis(100), { i -> i == 1 })
-        val result = runBlocking { backoff.retry { -> 2 } }
+        val result = runBlocking { backoff.retry { 2 } }
         assert(result.isErr())
         assertEquals(result.retries, 3)
     }
@@ -47,7 +47,7 @@ class StrategyBackoffTest {
     @Test
     fun invalidThrowableErr() {
         val backoff = StrategyBackoff<Int>(Duration.ofMillis(100), { i -> i == 1 })
-        val result = runBlocking { backoff.retry { -> throw InterruptedException() } }
+        val result = runBlocking { backoff.retry { throw InterruptedException() } }
         assert(result.isErr())
         assertEquals(result.retries, 1)
     }
@@ -55,7 +55,7 @@ class StrategyBackoffTest {
     @Test
     fun validThrowableErr() {
         val backoff = StrategyBackoff<Int>(Duration.ofMillis(100), { i -> i == 1 })
-        val result = runBlocking { backoff.retry { -> throw Exception() } }
+        val result = runBlocking { backoff.retry { throw Exception() } }
         assert(result.isErr())
         assertEquals(result.retries, 3)
     }
