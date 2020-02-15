@@ -4,13 +4,13 @@ class RetryException : Exception {
 
     constructor() : super()
 
-    constructor(e: Exception) : super(e)
+    constructor(e: Throwable) : super(e)
 }
 
 /**
  * nonFatal Exception matcher
  */
-fun nonFatal(e: Exception): Boolean {
+fun nonFatal(e: Throwable): Boolean {
     return when (e) {
         is VirtualMachineError, is ThreadDeath, is InterruptedException, is LinkageError -> false
         else -> true
