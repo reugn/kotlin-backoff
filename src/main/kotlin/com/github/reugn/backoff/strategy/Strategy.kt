@@ -12,7 +12,7 @@ interface Strategy {
         /**
          * [ConstantStrategy] factory method
          */
-        fun constant(time: Long): ConstantStrategy = ConstantStrategy(time)
+        fun constant(): ConstantStrategy = ConstantStrategy()
 
         /**
          * [ExponentialFullJitterStrategy] factory method
@@ -20,9 +20,10 @@ interface Strategy {
         fun expFullJitter(base: Int): ExponentialFullJitterStrategy = ExponentialFullJitterStrategy(base)
 
         /**
-         * [ExponentialHalfJitterStrategy] factory method
+         * [ExponentialPartialJitterStrategy] factory method
          */
-        fun expHalfJitter(base: Int): ExponentialHalfJitterStrategy = ExponentialHalfJitterStrategy(base)
+        fun expPartialJitter(base: Int, ratio: Double): ExponentialPartialJitterStrategy =
+            ExponentialPartialJitterStrategy(base, ratio)
 
         /**
          * [ExponentialStrategy] factory method

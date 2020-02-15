@@ -4,7 +4,15 @@ class RetryException : Exception {
 
     constructor() : super()
 
-    constructor(msg: String) : super(msg)
+    constructor(e: Throwable) : super(e)
+}
 
-    constructor(msg: String, e: Exception) : super(msg, e)
+/**
+ * nonFatal Exception matcher
+ */
+fun nonFatal(e: Throwable): Boolean {
+    return when (e) {
+        is VirtualMachineError, is ThreadDeath, is InterruptedException, is LinkageError -> false
+        else -> true
+    }
 }
