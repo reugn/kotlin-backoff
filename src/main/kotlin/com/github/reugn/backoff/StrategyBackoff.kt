@@ -31,25 +31,24 @@ class StrategyBackoff<T>(
 
     private suspend fun retryN(f: suspend () -> T, n: Int, prev: Long): Result<T, Exception> {
         while (true) {
-            val next = next(prev)
             return try {
-                delay(next)
+                delay(prev)
                 val res = f()
                 if (success(res))
                     Ok(res)
                 else
-                    checkCondition(f, n + 1, next)
+                    checkCondition(f, n + 1, next(prev))
             } catch (e: Exception) {
-                checkCondition(f, n + 1, next)
+                checkCondition(f, n + 1, next(prev))
             }
         }
     }
 
     private suspend fun checkCondition(f: suspend () -> T, n: Int, next: Long): Result<T, Exception> {
-        if (n < max)
-            return retryN(f, n + 1, next)
+        return if (n <= max)
+            retryN(f, n, next)
         else
-            throw RetryException("Retry limit of $max reached")
+            Err(RetryException("Retry limit of $max reached"))
     }
 
 }
