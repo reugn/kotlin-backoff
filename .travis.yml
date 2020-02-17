@@ -6,5 +6,6 @@ install:
 before_install:
   - chmod +x gradlew
   - chmod +x gradle/wrapper/gradle-wrapper.jar
+  - echo -e 'user = u\npassword = p' > local.properties
 script:
   - ./gradlew test build
