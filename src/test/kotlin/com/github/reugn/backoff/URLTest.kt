@@ -1,7 +1,6 @@
 package com.github.reugn.backoff
 
 import com.github.reugn.backoff.strategy.Strategy
-import com.github.reugn.backoff.utils.Ok
 import com.github.reugn.backoff.utils.nonFatal
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
@@ -13,12 +12,14 @@ class URLTest {
 
     private val action = suspend { URL("http://worldtimeapi.org/").readText() }
 
-//    @Test
+    @Test
     fun urlTest() {
-        val backoff = StrategyBackoff<String>(Duration.ofMillis(100), { s -> s.isNotEmpty() }, 3,
-            Strategy.expFullJitter(2), ::nonFatal)
+        val backoff = StrategyBackoff<String>(
+            Duration.ofMillis(500), { s -> s.isNotEmpty() }, 3,
+            Strategy.expFullJitter(2), ::nonFatal
+        )
         val result = runBlocking { backoff.retry(action) }
-        println((result as Ok).value)
+        //println((result as Ok).value)
         assert(result.isOk())
         Assertions.assertEquals(result.retries, 1)
     }
