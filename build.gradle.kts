@@ -1,26 +1,29 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.FileInputStream
-import java.util.*
 
 plugins {
-    kotlin("jvm") version "1.3.50"
-    kotlin("plugin.serialization") version "1.3.50"
+    java
+    `java-library`
+    kotlin("jvm") version "1.5.10"
+    kotlin("plugin.serialization") version "1.5.10"
     `maven-publish`
-    id("com.jfrog.bintray") version "1.8.4"
+    signing
 }
 
-group = "com.github.reugn"
+group = "io.github.reugn"
 version = "0.2.0"
 
 repositories {
     mavenCentral()
-    jcenter()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc")
     testImplementation("org.junit.jupiter:junit-jupiter:5.6.0")
 }
 
@@ -32,61 +35,59 @@ tasks.test {
     useJUnitPlatform()
 }
 
-val sourcesJar by tasks.creating(Jar::class) {
-    archiveClassifier.set("sources")
-    from(sourceSets.getByName("main").allSource)
-}
-
-val url = "https://github.com/reugn/kotlin-backoff"
 publishing {
     publications {
-        create<MavenPublication>("kotlin-backoff") {
+        create<MavenPublication>("mavenCentral") {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
             from(components["java"])
-            artifact(sourcesJar)
-
-            pom.withXml {
-                asNode().apply {
-                    appendNode("description", url)
-                    appendNode("name", rootProject.name)
-                    appendNode("url", url)
-                    appendNode("licenses").appendNode("license").apply {
-                        appendNode("name", url)
-                        appendNode("url", url)
-                        appendNode("distribution", "repo")
+            pom {
+                name.set(project.name)
+                description.set("A simple Exponential Backoff library for Kotlin.")
+                url.set("https://github.com/reugn/kotlin-backoff")
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
                     }
-                    appendNode("developers").appendNode("developer").apply {
-                        appendNode("id", "reugn")
-                        appendNode("name", "Reugn")
+                }
+                developers {
+                    developer {
+                        id.set("reugn")
+                        name.set("reugn")
+                        email.set("reugpro@gmail.com")
+                        url.set("https://github.com/reugn")
                     }
-                    appendNode("scm").apply {
-                        appendNode("url", url)
-                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com/reugn/kotlin-backoff.git")
+                    developerConnection.set("scm:git:ssh://github.com/reugn/kotlin-backoff.git")
+                    url.set("https://github.com/reugn/kotlin-backoff")
                 }
             }
         }
     }
+    repositories {
+        maven {
+            name = "mavenCentral"
+            credentials(PasswordCredentials::class)
+            val nexus = "https://s01.oss.sonatype.org/"
+            val releasesRepoUrl = uri(nexus + "service/local/staging/deploy/maven2")
+            val snapshotsRepoUrl = uri(nexus + "content/repositories/snapshots")
+            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+        }
+    }
 }
 
-val prop = Properties()
-prop.load(FileInputStream("local.properties"))
-bintray {
-    user = prop.getProperty("user").toString()
-    key = prop.getProperty("password").toString()
-    publish = true
+signing {
+    sign(publishing.publications["mavenCentral"])
+    useGpgCmd()
+    sign(configurations.archives.get())
+}
 
-    setPublications("kotlin-backoff")
-
-    pkg.apply {
-        repo = "maven"
-        name = project.name
-        userOrg = "reug"
-        githubRepo = githubRepo
-        vcsUrl = url
-        description = "Simple Kotlin Exponential backoff library"
-        setLicenses("Apache-2.0")
-        desc = description
+tasks.javadoc {
+    if (JavaVersion.current().isJava9Compatible) {
+        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }
 }
