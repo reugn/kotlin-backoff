@@ -4,8 +4,8 @@ import kotlin.random.Random
 
 class ExponentialFullJitterStrategy(private val base: Int) : Strategy {
 
-    override fun next(delay: Long): Long {
-        val next = delay * base
+    override fun next(previousDelayPeriod: Long): Long {
+        val next = previousDelayPeriod * base
         val jitter = Random.nextInt(0, (next / 2).toInt())
         return next + jitter
     }

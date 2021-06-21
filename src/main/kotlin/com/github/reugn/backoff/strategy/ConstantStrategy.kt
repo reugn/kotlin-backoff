@@ -1,6 +1,6 @@
 package com.github.reugn.backoff.strategy
 
-class ConstantStrategy() : Strategy {
+class ConstantStrategy : Strategy {
 
-    override fun next(delay: Long): Long = delay
+    override fun next(previousDelayPeriod: Long): Long = previousDelayPeriod
 }
