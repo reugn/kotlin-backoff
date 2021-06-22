@@ -1,36 +1,31 @@
 # kotlin-backoff
-[![Download](https://api.bintray.com/packages/reug/maven/kotlin-backoff/images/download.svg)](https://bintray.com/reug/maven/kotlin-backoff/_latestVersion)
-[![Build Status](https://travis-ci.com/reugn/kotlin-backoff.svg?branch=master)](https://travis-ci.com/reugn/kotlin-backoff)
+[![Build](https://github.com/reugn/kotlin-backoff/actions/workflows/build.yml/badge.svg)](https://github.com/reugn/kotlin-backoff/actions/workflows/build.yml)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.reugn/kotlin-backoff/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.reugn/kotlin-backoff/)
 
-Simple Kotlin Exponential backoff library
+A simple Kotlin Exponential Backoff library designed for `kotlinx.coroutines`.
 
-## Installation
+## Getting started
 Gradle:
 ```kotlin
-repositories {
-    maven {
-        setUrl("https://dl.bintray.com/reug/maven")
-    }
-}
-
 dependencies {
-    implementation 'com.github.reugn:kotlin-backoff:<version>'
+    implementation("io.github.reugn:kotlin-backoff:<version>")
 }
 ```
 
 ## Examples
 ```kotlin
-private val action = suspend { URL("http://worldtimeapi.org/").readText() }
+private val action = suspend { URL("http://worldclockapi.com/api/json/utc/now").readText() }
 
 @Test
 fun urlTest() {
-    val backoff = StrategyBackoff<String>(Duration.ofMillis(100), { s -> s.isNotEmpty() }, 3,
+    val backoff = StrategyBackoff<String>(Duration.ofMillis(500), { s -> s.isNotEmpty() }, 3,
         Strategy.expFullJitter(2), ::nonFatal)
     val result = runBlocking { backoff.retry(action) }
     assert(result.isOk())
     assertEquals(result.retries, 1)
 }
 ```
+More examples can be found in the test section.
 
 ## License
 Licensed under the [Apache 2.0 License](./LICENSE).
