@@ -1,32 +1,32 @@
-package com.github.reugn.backoff.strategy
+package io.github.reugn.kotlin.backoff.strategy
 
 interface Strategy {
 
     /**
-     * Calculate suspend time based on previous delay
+     * Calculate a delay period for the next retry.
      */
-    fun next(delay: Long): Long
+    fun next(previousDelayPeriod: Long): Long
 
     companion object {
 
         /**
-         * [ConstantStrategy] factory method
+         * A [ConstantStrategy] factory method.
          */
         fun constant(): ConstantStrategy = ConstantStrategy()
 
         /**
-         * [ExponentialFullJitterStrategy] factory method
+         * An [ExponentialFullJitterStrategy] factory method.
          */
         fun expFullJitter(base: Int): ExponentialFullJitterStrategy = ExponentialFullJitterStrategy(base)
 
         /**
-         * [ExponentialPartialJitterStrategy] factory method
+         * An [ExponentialPartialJitterStrategy] factory method.
          */
         fun expPartialJitter(base: Int, ratio: Double): ExponentialPartialJitterStrategy =
             ExponentialPartialJitterStrategy(base, ratio)
 
         /**
-         * [ExponentialStrategy] factory method
+         * An [ExponentialStrategy] factory method.
          */
         fun exp(base: Int): ExponentialStrategy = ExponentialStrategy(base)
     }

@@ -1,19 +1,19 @@
-package com.github.reugn.backoff
+package io.github.reugn.kotlin.backoff
 
-import com.github.reugn.backoff.strategy.Strategy
-import com.github.reugn.backoff.utils.*
+import io.github.reugn.kotlin.backoff.strategy.Strategy
+import io.github.reugn.kotlin.backoff.utils.*
 import kotlinx.coroutines.delay
 import java.time.Duration
 
 /**
- * Strategy based Backoff implementation
+ * A Strategy based [Backoff] implementation.
  *
- * @param T the type of retry result
- * @property delayTime base delay interval
- * @property success retry method success condition
- * @property max max number of retries
- * @property strategy next delay time calculation Strategy
- * @property validate validate and halt the retry loop on invalid exception
+ * @param T the type of the retry result.
+ * @property delayTime the initial delay interval.
+ * @property success the retry method [Success] determiner.
+ * @property max the maximum number of retries.
+ * @property strategy the next delay time calculation [Strategy].
+ * @property validate validate and exit the retry loop on an invalid exception.
  */
 class StrategyBackoff<T>(
     private val delayTime: Duration,
@@ -53,7 +53,7 @@ class StrategyBackoff<T>(
             retryN(f, n, next)
         else {
             e?.let {
-                Err<T, RetryException>(RetryException(it), max)
+                Err(RetryException(it), max)
             } ?: Err(RetryException(), max)
         }
     }

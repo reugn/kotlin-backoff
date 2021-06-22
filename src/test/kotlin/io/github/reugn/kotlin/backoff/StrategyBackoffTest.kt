@@ -1,8 +1,8 @@
-package com.github.reugn.backoff
+package io.github.reugn.kotlin.backoff
 
-import com.github.reugn.backoff.strategy.Strategy
-import com.github.reugn.backoff.utils.Ok
-import com.github.reugn.backoff.utils.forall
+import io.github.reugn.kotlin.backoff.strategy.Strategy
+import io.github.reugn.kotlin.backoff.utils.Ok
+import io.github.reugn.kotlin.backoff.utils.forall
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

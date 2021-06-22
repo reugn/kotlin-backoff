@@ -1,6 +1,6 @@
-package com.github.reugn.backoff
+package io.github.reugn.kotlin.backoff
 
-import com.github.reugn.backoff.utils.Result
+import io.github.reugn.kotlin.backoff.utils.Result
 
 interface Backoff<T> {
 
