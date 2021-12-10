@@ -1,61 +1,93 @@
 package io.github.reugn.kotlin.backoff
 
+import io.github.reugn.kotlin.backoff.strategy.ExponentialStrategy
 import io.github.reugn.kotlin.backoff.strategy.Strategy
-import io.github.reugn.kotlin.backoff.utils.*
+import io.github.reugn.kotlin.backoff.util.*
 import kotlinx.coroutines.delay
-import java.time.Duration
 
 /**
- * A Strategy based [Backoff] implementation.
+ * A [Strategy] based [Backoff] implementation.
+ * Backoff strategies calculate the delay that should be applied between retries.
  *
- * @param T the type of the retry result.
- * @property delayTime the initial delay interval.
- * @property success the retry method [Success] determiner.
- * @property max the maximum number of retries.
+ * @param T the return type of operation to be executed with retries.
+ * @property maxRetries the maximum number of retries.
  * @property strategy the next delay time calculation [Strategy].
- * @property validate validate and exit the retry loop on an invalid exception.
+ *          See implemented strategies in the io.github.reugn.kotlin.backoff.strategy package.
+ * @property errorValidator exits the retry loop on an invalid exception.
+ * @property resultValidator validates the operation result and returns if successful. Continues to
+ *          another retry cycle otherwise.
  */
 class StrategyBackoff<T>(
-    private val delayTime: Duration,
-    val success: Success<T>,
-    private val max: Int = 3,
-    private val strategy: Strategy = Strategy.expFullJitter(2),
-    private val validate: (Throwable) -> Boolean = ::nonFatal
+    private val maxRetries: Int = 3,
+    private val strategy: Strategy = ExponentialStrategy(),
+    private val errorValidator: ErrorValidator = ::nonFatal,
+    private val resultValidator: ResultValidator<T> = ::acceptAny,
 ) : Backoff<T>, Strategy by strategy {
 
-    override suspend fun retry(f: suspend () -> T): Result<T, Exception> {
-        return retryN(f, 1, delayTime.toMillis())
+    init {
+        require(maxRetries > 0)
     }
 
-    private suspend fun retryN(f: suspend () -> T, n: Int, prev: Long): Result<T, Exception> {
+    override suspend fun retry(
+        operation: suspend () -> T
+    ): Result<T, Throwable> {
+        return retryWithAttempts(operation, 1)
+    }
+
+    override suspend fun withRetries(
+        operation: suspend () -> T
+    ): Result<T, Throwable> {
+        return try {
+            val result = operation()
+            if (resultValidator(result))
+                Ok(result, 0)
+            else
+                retryWithAttempts(operation, 1)
+        } catch (e: Throwable) {
+            if (errorValidator(e))
+                retryWithAttempts(operation, 1)
+            else
+                Err(e, 0)
+        }
+    }
+
+    private suspend fun retryWithAttempts(
+        operation: suspend () -> T,
+        attempt: Int
+    ): Result<T, Throwable> {
         while (true) {
             return try {
-                delay(prev)
-                val res = f()
-                if (success(res))
-                    Ok(res, n)
+                delay(nextDelay(attempt))
+
+                val result = operation()
+                if (resultValidator(result))
+                    Ok(result, attempt)
                 else
-                    checkCondition(f, n + 1, next(prev))
+                    validateAttempts(operation, attempt + 1)
             } catch (e: Throwable) {
-                if (validate(e))
-                    checkCondition(f, n + 1, next(prev), e)
+                if (validateThrowable(e))
+                    validateAttempts(operation, attempt + 1, e)
                 else
-                    Err(RetryException(e), n)
+                    Err(e, attempt)
             }
         }
     }
 
-    private suspend fun checkCondition(
-        f: suspend () -> T, n: Int, next: Long,
-        e: Throwable? = null
-    ): Result<T, Exception> {
-        return if (n <= max)
-            retryN(f, n, next)
-        else {
-            e?.let {
-                Err(RetryException(it), max)
-            } ?: Err(RetryException(), max)
-        }
+    private fun validateThrowable(e: Throwable): Boolean {
+        return e !is RetryException && errorValidator(e)
     }
 
+    private suspend fun validateAttempts(
+        operation: suspend () -> T,
+        attempt: Int,
+        e: Throwable? = null
+    ): Result<T, Throwable> {
+        return if (attempt <= maxRetries) {
+            retryWithAttempts(operation, attempt)
+        } else {
+            e?.let {
+                Err(it, maxRetries)
+            } ?: Err(RetryException("Result validation failed."), maxRetries)
+        }
+    }
 }

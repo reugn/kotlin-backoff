@@ -5,15 +5,15 @@ import kotlin.math.pow
 
 /**
  * A strategy in which the next delay interval is calculated using
- * `baseDelayMs * expBase.pow(attempt)` where:
+ * `baseDelayMs * attempt.pow(exponent)` where:
  *  - baseDelayMs is the base delay in milliseconds.
  *  - attempt is the number of unsuccessful attempts that have been made.
- *  - expBase is the exponent base configured for the strategy.
+ *  - exponent is the exponent configured for the strategy.
  *
  * The specified jitter and scale factor are applied to the calculated interval.
  * The delay time cannot exceed the specified maximum delay in milliseconds.
  */
-data class ExponentialStrategy(
+data class PolynomialStrategy(
 
     /**
      * The base delay in milliseconds.
@@ -26,9 +26,9 @@ data class ExponentialStrategy(
     private val maxDelayMs: Long = 10000L,
 
     /**
-     * The exponent base.
+     * The exponent.
      */
-    private val expBase: Int = 2,
+    private val exponent: Int = 2,
 
     /**
      * The relative jitter factor applied to the interval.
@@ -46,18 +46,18 @@ data class ExponentialStrategy(
     init {
         require(baseDelayMs > 0)
         require(maxDelayMs > 0)
-        require(expBase > 0)
+        require(exponent > 0)
         require(jitterFactor in 0.0..1.0)
         require(scaleFactor > 0)
     }
 
     override fun nextDelay(
-        attempt: Int,
+        attempt: Int
     ): Long {
-        val expInterval = (baseDelayMs * expBase.toDouble().pow(attempt.toDouble())).toLong()
+        val polInterval = (baseDelayMs * attempt.toDouble().pow(exponent.toDouble())).toLong()
         return min(
             maxDelayMs,
-            (withJitter(expInterval, jitterFactor) * scaleFactor).toLong()
+            (withJitter(polInterval, jitterFactor) * scaleFactor).toLong()
         )
     }
 }
