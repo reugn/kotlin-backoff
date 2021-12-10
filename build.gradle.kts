@@ -3,14 +3,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     java
     `java-library`
-    kotlin("jvm") version "1.5.10"
-    kotlin("plugin.serialization") version "1.5.10"
+    kotlin("jvm") version "1.6.0"
+    kotlin("plugin.serialization") version "1.6.0"
     `maven-publish`
     signing
 }
 
 group = "io.github.reugn"
-version = "0.3.0"
 
 repositories {
     mavenCentral()
@@ -22,9 +21,9 @@ java {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.6.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
 }
 
 tasks.withType<KotlinCompile> {
@@ -44,7 +43,7 @@ publishing {
             from(components["java"])
             pom {
                 name.set(project.name)
-                description.set("A simple Exponential Backoff library for Kotlin.")
+                description.set("An exponential backoff library for Kotlin.")
                 url.set("https://github.com/reugn/kotlin-backoff")
                 licenses {
                     license {
