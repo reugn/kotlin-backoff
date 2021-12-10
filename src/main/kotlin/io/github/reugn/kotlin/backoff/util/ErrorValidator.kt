@@ -1,11 +1,6 @@
-package io.github.reugn.kotlin.backoff.utils
+package io.github.reugn.kotlin.backoff.util
 
-class RetryException : Exception {
-
-    constructor() : super()
-
-    constructor(e: Throwable) : super(e)
-}
+typealias ErrorValidator = (Throwable) -> Boolean
 
 /**
  * Returns true if the provided Throwable is to be considered non-fatal,
